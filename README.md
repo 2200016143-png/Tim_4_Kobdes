@@ -21,6 +21,42 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
+## Data Akademik
+
+Seeder kampus menyediakan data contoh fakultas, program studi, dosen, mahasiswa,
+mata kuliah, kelas, jadwal, komponen penilaian, dan KRS untuk tahun akademik
+2026/2027. Untuk membuat tabel dan mengisi data contoh pada database yang
+dikonfigurasi:
+
+```bash
+php artisan migrate --seed
+```
+
+Seeder dapat dijalankan kembali tanpa menggandakan data:
+
+```bash
+php artisan db:seed --class=KampusSeeder
+```
+
+Kebijakan batas SKS berdasarkan IPS tersimpan di `kebijakan_beban_sks`, dan
+konversi nilai akhir ke nilai huruf tersimpan di `skala_nilais`; keduanya dapat
+diubah sesuai ketentuan kampus. Aturan pengisian dan pengajuan KRS, jadwal,
+penilaian, presensi, serta kelayakan UAS diterapkan oleh layanan aplikasi pada
+`app/Services`.
+
+Rancangan tabel DBML tersedia di [`database/schema.dbml`](database/schema.dbml).
+KRS tersimpan pada tabel `krs`, sedangkan mata kuliah dan kelas yang dipilih
+tersimpan pada `krs_details`.
+
+Jalankan suite pengujian dengan:
+
+```bash
+php artisan test
+```
+
+Saat ini aturan akademik tersedia pada lapisan layanan dan belum dihubungkan ke
+endpoint HTTP atau antarmuka pengguna.
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.

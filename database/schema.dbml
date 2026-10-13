@@ -1,0 +1,347 @@
+// Skema SIAKAD berdasarkan Business Requirement Document (BRD) v2.0.
+// Aturan konflik jadwal, batas SKS, prasyarat, bobot nilai, dan ambang presensi
+// tetap perlu divalidasi pada lapisan aplikasi selain constraint relasional.
+
+Table users {
+  id bigint [pk, increment]
+  name varchar(255) [not null]
+  email varchar(255) [not null, unique]
+  email_verified_at timestamp
+  password varchar(255) [not null]
+  remember_token varchar(100)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table roles {
+  id bigint [pk, increment]
+  name varchar(20) [not null, unique]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table role_user {
+  id bigint [pk, increment]
+  user_id bigint [not null]
+  role_id bigint [not null]
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (user_id, role_id) [unique]
+  }
+}
+
+Table fakultas {
+  id bigint [pk, increment]
+  kode varchar(10) [not null, unique]
+  nama varchar(255) [not null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table program_studis {
+  id bigint [pk, increment]
+  fakultas_id bigint [not null]
+  kode varchar(10) [not null, unique]
+  nama varchar(150) [not null]
+  jenjang varchar(10) [not null, note: 'Contoh: D3, S1, S2, S3']
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table dosens {
+  id bigint [pk, increment]
+  user_id bigint [unique]
+  program_studi_id bigint [not null]
+  nid varchar(20) [not null, unique]
+  nama varchar(100) [not null]
+  email varchar(100) [not null, unique]
+  no_hp varchar(15)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table mahasiswas {
+  id bigint [pk, increment]
+  fakultas_id bigint [not null]
+  user_id bigint [unique]
+  program_studi_id bigint
+  dosen_pa_id bigint
+  nim varchar(20) [not null, unique]
+  nama varchar(255) [not null]
+  email varchar(255) [not null, unique]
+  alamat text
+  tanggal_lahir date
+  angkatan smallint [not null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table ruangans {
+  id bigint [pk, increment]
+  kode varchar(10) [not null, unique]
+  nama varchar(100) [not null]
+  kapasitas int [not null, note: 'Harus lebih besar dari 0']
+  lokasi varchar(150)
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table semester_akademiks {
+  id bigint [pk, increment]
+  kode varchar(10) [not null, unique, note: 'Contoh: 2026/2027-1']
+  tahun_akademik varchar(9) [not null, note: 'Contoh: 2026/2027']
+  semester varchar(10) [not null, note: 'ganjil, genap, atau pendek']
+  tanggal_mulai date [not null]
+  tanggal_selesai date [not null]
+  krs_dibuka_pada datetime
+  krs_ditutup_pada datetime
+  jumlah_pertemuan_standar int [not null, default: 16]
+  persentase_minimum_kehadiran_uas decimal(5,2) [not null, default: 75]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table kurikulums {
+  id bigint [pk, increment]
+  program_studi_id bigint [not null]
+  kode varchar(20) [not null, unique]
+  nama varchar(150) [not null]
+  tahun_mulai smallint [not null]
+  tahun_selesai smallint
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table mata_kuliahs {
+  id bigint [pk, increment]
+  fakultas_id bigint [not null]
+  program_studi_id bigint
+  kode varchar(20) [not null, unique]
+  nama varchar(255) [not null]
+  sks int [not null, note: 'Nilai 1 sampai 6']
+  semester_tawaran int [not null, note: 'Nilai 1 sampai 8']
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table kurikulum_mata_kuliah {
+  id bigint [pk, increment]
+  kurikulum_id bigint [not null]
+  mata_kuliah_id bigint [not null]
+  semester_rekomendasi int [not null]
+  wajib boolean [not null]
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (kurikulum_id, mata_kuliah_id) [unique]
+  }
+}
+
+Table prasyarat_mata_kuliahs {
+  id bigint [pk, increment]
+  mata_kuliah_id bigint [not null]
+  prasyarat_id bigint [not null]
+  nilai_minimum varchar(1) [not null, default: 'D']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (mata_kuliah_id, prasyarat_id) [unique]
+  }
+}
+
+Table kelas_perkuliahans {
+  id bigint [pk, increment]
+  mata_kuliah_id bigint [not null]
+  dosen_id bigint [not null]
+  semester_akademik_id bigint [not null]
+  kode_kelas varchar(20) [not null]
+  kuota int [not null, note: 'Tidak boleh kurang dari 0']
+  status varchar(20) [not null, default: 'open', note: 'open, closed, atau cancelled']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (semester_akademik_id, mata_kuliah_id, kode_kelas) [unique]
+  }
+}
+
+Table jadwal_kuliahs {
+  id bigint [pk, increment]
+  kelas_perkuliahan_id bigint [not null]
+  ruangan_id bigint [not null]
+  hari varchar(10) [not null, note: 'senin sampai minggu']
+  jam_mulai time [not null]
+  jam_selesai time [not null]
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (kelas_perkuliahan_id, hari, jam_mulai) [unique]
+    (ruangan_id, hari, jam_mulai)
+  }
+}
+
+Table kebijakan_beban_sks {
+  id bigint [pk, increment]
+  ips_minimum decimal(3,2) [not null]
+  ips_maksimum decimal(3,2) [not null]
+  sks_maksimum int [not null]
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (ips_minimum, ips_maksimum) [unique]
+  }
+}
+
+Table skala_nilais {
+  id bigint [pk, increment]
+  nilai_huruf varchar(1) [not null, unique]
+  nilai_minimum decimal(5,2) [not null]
+  nilai_maksimum decimal(5,2) [not null]
+  bobot_mutu decimal(3,2) [not null, note: 'Bobot nilai untuk perhitungan IPS dan IPK']
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table krs {
+  id bigint [pk, increment]
+  mahasiswa_id bigint [not null]
+  tahun_akademik varchar(9) [not null]
+  semester varchar(10) [not null]
+  semester_akademik_id bigint
+  disetujui_oleh_dosen_id bigint
+  diajukan_pada datetime
+  disetujui_pada datetime
+  status varchar(20) [not null, default: 'draft', note: 'draft, submitted, approved, atau rejected']
+  catatan_penolakan text
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (mahasiswa_id, tahun_akademik, semester) [unique]
+  }
+}
+
+Table krs_details {
+  id bigint [pk, increment]
+  krs_id bigint [not null]
+  mata_kuliah_id bigint [not null]
+  kelas_perkuliahan_id bigint
+  nilai_akhir_angka decimal(5,2)
+  nilai_huruf varchar(1)
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (krs_id, mata_kuliah_id) [unique]
+  }
+}
+
+Table komponen_nilais {
+  id bigint [pk, increment]
+  kelas_perkuliahan_id bigint [not null]
+  nama varchar(50) [not null, note: 'Contoh: Tugas, UTS, UAS']
+  bobot decimal(5,2) [not null, note: 'Persentase bobot komponen']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (kelas_perkuliahan_id, nama) [unique]
+  }
+}
+
+Table krs_detail_nilais {
+  id bigint [pk, increment]
+  krs_detail_id bigint [not null]
+  komponen_nilai_id bigint [not null]
+  nilai decimal(5,2) [not null, note: 'Rentang nilai 0 sampai 100']
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (krs_detail_id, komponen_nilai_id) [unique]
+  }
+}
+
+Table pertemuan_kuliahs {
+  id bigint [pk, increment]
+  kelas_perkuliahan_id bigint [not null]
+  nomor_pertemuan int [not null, note: 'Pertemuan ke-1 sampai ke-16']
+  tanggal date [not null]
+  topik varchar(255)
+  status_presensi_dosen varchar(10)
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (kelas_perkuliahan_id, nomor_pertemuan) [unique]
+  }
+}
+
+Table presensis {
+  id bigint [pk, increment]
+  pertemuan_kuliah_id bigint [not null]
+  krs_detail_id bigint [not null]
+  status varchar(10) [not null, note: 'hadir, izin, sakit, atau alpa']
+  dicatat_pada datetime [not null]
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (pertemuan_kuliah_id, krs_detail_id) [unique]
+  }
+}
+
+Table riwayat_perubahan_nilais {
+  id bigint [pk, increment]
+  krs_detail_id bigint [not null]
+  dosen_id bigint [not null]
+  nilai_angka_lama decimal(5,2)
+  nilai_huruf_lama varchar(1)
+  nilai_angka_baru decimal(5,2)
+  nilai_huruf_baru varchar(1)
+  alasan text [not null]
+  diubah_pada datetime [not null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Ref: role_user.user_id > users.id [delete: cascade]
+Ref: role_user.role_id > roles.id [delete: restrict]
+Ref: program_studis.fakultas_id > fakultas.id [delete: restrict]
+Ref: dosens.user_id > users.id [delete: set null]
+Ref: dosens.program_studi_id > program_studis.id [delete: restrict]
+Ref: mahasiswas.fakultas_id > fakultas.id [delete: restrict]
+Ref: mahasiswas.user_id > users.id [delete: set null]
+Ref: mahasiswas.program_studi_id > program_studis.id [delete: restrict]
+Ref: mahasiswas.dosen_pa_id > dosens.id [delete: set null]
+Ref: kurikulums.program_studi_id > program_studis.id [delete: restrict]
+Ref: mata_kuliahs.program_studi_id > program_studis.id [delete: restrict]
+Ref: mata_kuliahs.fakultas_id > fakultas.id [delete: restrict]
+Ref: kurikulum_mata_kuliah.kurikulum_id > kurikulums.id [delete: cascade]
+Ref: kurikulum_mata_kuliah.mata_kuliah_id > mata_kuliahs.id [delete: restrict]
+Ref: prasyarat_mata_kuliahs.mata_kuliah_id > mata_kuliahs.id [delete: cascade]
+Ref: prasyarat_mata_kuliahs.prasyarat_id > mata_kuliahs.id [delete: restrict]
+Ref: kelas_perkuliahans.mata_kuliah_id > mata_kuliahs.id [delete: restrict]
+Ref: kelas_perkuliahans.dosen_id > dosens.id [delete: restrict]
+Ref: kelas_perkuliahans.semester_akademik_id > semester_akademiks.id [delete: restrict]
+Ref: jadwal_kuliahs.kelas_perkuliahan_id > kelas_perkuliahans.id [delete: cascade]
+Ref: jadwal_kuliahs.ruangan_id > ruangans.id [delete: restrict]
+Ref: krs.mahasiswa_id > mahasiswas.id [delete: restrict]
+Ref: krs.semester_akademik_id > semester_akademiks.id [delete: restrict]
+Ref: krs.disetujui_oleh_dosen_id > dosens.id [delete: set null]
+Ref: krs_details.krs_id > krs.id [delete: cascade]
+Ref: krs_details.kelas_perkuliahan_id > kelas_perkuliahans.id [delete: restrict]
+Ref: komponen_nilais.kelas_perkuliahan_id > kelas_perkuliahans.id [delete: cascade]
+Ref: krs_detail_nilais.krs_detail_id > krs_details.id [delete: cascade]
+Ref: krs_detail_nilais.komponen_nilai_id > komponen_nilais.id [delete: restrict]
+Ref: pertemuan_kuliahs.kelas_perkuliahan_id > kelas_perkuliahans.id [delete: cascade]
+Ref: presensis.pertemuan_kuliah_id > pertemuan_kuliahs.id [delete: cascade]
+Ref: presensis.krs_detail_id > krs_details.id [delete: cascade]
+Ref: riwayat_perubahan_nilais.krs_detail_id > krs_details.id [delete: restrict]
+Ref: riwayat_perubahan_nilais.dosen_id > dosens.id [delete: restrict]
