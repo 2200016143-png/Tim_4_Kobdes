@@ -1,97 +1,138 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Sistem Informasi Akademik (SIAKAD)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Dokumentasi ini merangkum Business Requirement Document (BRD) SIAKAD versi
+1.0, tanggal 7 Oktober 2026, serta menjelaskan bagian yang sudah tersedia di
+repository. Dokumen BRD lengkap tidak disertakan; README ini berisi ringkasan
+kebutuhan dan rancangan agar konteks laporan dapat dibaca langsung di GitHub.
 
-## About Laravel
+## Gambaran umum
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+SIAKAD dirancang untuk mengelola siklus administrasi akademik perguruan tinggi:
+registrasi mahasiswa, kurikulum dan mata kuliah, Kartu Rencana Studi (KRS),
+penjadwalan, presensi, penilaian, Kartu Hasil Studi (KHS), transkrip, dan
+kelulusan.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Tujuan utamanya:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Menjaga integritas, konsistensi, dan validitas data akademik.
+- Memudahkan registrasi dan pengisian KRS secara mandiri tanpa bentrok jadwal.
+- Menyediakan informasi akademik bagi mahasiswa, dosen, dan pimpinan.
 
-## Data Akademik
+## Pemangku kepentingan
 
-Seeder menyediakan data kampus dan 2.000 mahasiswa dummy beserta KRS yang
-disetujui, nilai komponen dan nilai akhir, serta 16 catatan presensi per mata
-kuliah untuk tahun akademik 2026/2027. Total data akademik yang dibuat seeder
-laporan melampaui 100.000 baris. Data dummy terhubung ke fakultas, program studi,
-dosen, kelas, semester, dan komponen nilai sesuai rancangan di BRD.
+| Pemangku kepentingan | Kebutuhan utama |
+| --- | --- |
+| Mahasiswa | Mengisi KRS, melihat jadwal, memantau presensi, dan mengakses KHS/transkrip. |
+| Dosen pengampu | Mengelola jurnal perkuliahan, presensi, dan nilai komponen. |
+| Dosen Pembimbing Akademik (DPA) | Meninjau serta menyetujui atau menolak KRS mahasiswa bimbingan. |
+| Admin akademik / tata usaha | Mengelola data fakultas, program studi, mata kuliah, ruangan, dosen, mahasiswa, dan kurikulum. |
+| Pimpinan universitas / kaprodi | Melihat statistik akademik, analisis kelulusan, dan evaluasi beban kerja dosen. |
 
-Untuk membuat tabel dan mengisi data pada database yang dikonfigurasi:
+## Kebutuhan fungsional dalam BRD
 
-```bash
-php artisan migrate --seed
-```
+1. **FR-01 — Pengguna dan autentikasi:** hak akses berdasarkan peran mahasiswa,
+   dosen, admin, dan kaprodi.
+2. **FR-02 — Master data akademik:** pengelolaan data mahasiswa, dosen,
+   fakultas, program studi, kurikulum, dan ruangan.
+3. **FR-03 — Mata kuliah dan prasyarat:** pengaturan SKS, jenis mata kuliah,
+   serta keterkaitan mata kuliah prasyarat.
+4. **FR-04 — Jadwal dan ruang:** penjadwalan per semester dengan pencegahan
+   bentrok kelas, ruang, maupun dosen.
+5. **FR-05 — Pengisian dan perubahan KRS:** pemilihan kelas sesuai kuota SKS
+   mahasiswa.
+6. **FR-06 — Persetujuan KRS:** DPA memvalidasi dan menyetujui atau menolak
+   pengajuan KRS.
+7. **FR-07 — Presensi:** pencatatan kehadiran mahasiswa dan dosen selama 16
+   pertemuan.
+8. **FR-08 — Penilaian:** input nilai tugas, UTS, dan UAS serta perhitungan
+   nilai akhir dan nilai huruf.
+9. **FR-09 — Hasil studi:** perhitungan IPS/IPK dan penerbitan KHS atau
+   transkrip.
+10. **FR-10 — Audit nilai:** riwayat perubahan nilai yang mencatat waktu dan
+    identitas dosen.
 
-Seeder laporan dapat dijalankan sendiri dan diulang tanpa menggandakan data:
+## Rancangan data
+
+Entitas utama yang disebutkan di BRD:
+
+- **Mahasiswa** — NIM, nama, email, alamat, tanggal lahir, program studi, dan
+  DPA.
+- **Dosen** — NID, nama, email, nomor telepon, dan program studi.
+- **Mata kuliah** — kode, nama, SKS, semester tawaran, dan program studi.
+- **Kelas perkuliahan** — mata kuliah, dosen pengampu, semester, jadwal, ruang,
+  dan kuota.
+- **KRS** — mahasiswa, semester, tanggal pengajuan, dan status persetujuan
+  (Draft, Approved, atau Rejected).
+- **Detail KRS / penilaian** — kelas yang diambil, nilai tugas, UTS, UAS, nilai
+  angka akhir, dan nilai huruf.
+
+Relasi intinya: program studi memiliki mahasiswa, dosen, dan mata kuliah;
+mahasiswa memiliki KRS; KRS terdiri dari detail kelas; dan setiap detail KRS
+terhubung dengan kelas perkuliahan. Rancangan tabel proyek tersedia di
+[`database/schema.dbml`](database/schema.dbml).
+
+BRD mengarahkan normalisasi sampai 3NF, penggunaan foreign key untuk menjaga
+referensi data, serta validasi domain seperti nilai 0–100 dan nilai huruf A–E.
+
+## Aturan bisnis
+
+- Batas SKS KRS ditentukan berdasarkan hasil studi semester sebelumnya. BRD
+  mencantumkan contoh IPK minimal 3,00 untuk maksimum 24 SKS dan IPS 2,50–2,99
+  untuk maksimum 21 SKS; rentang lainnya perlu mengikuti kebijakan kampus.
+- Mata kuliah hanya dapat diambil jika prasyaratnya sudah dipenuhi dengan nilai
+  minimal D.
+- Kelas ditutup saat jumlah peserta mencapai kuota.
+- Mahasiswa harus memiliki presensi minimal 75% untuk memenuhi syarat mengikuti
+  UAS.
+
+## Target non-fungsional dalam BRD
+
+Target berikut merupakan persyaratan BRD, bukan klaim bahwa semuanya telah
+diuji atau dipenuhi oleh aplikasi:
+
+- **Performa:** waktu respons query di bawah 2 detik pada beban puncak yang
+  disebutkan sebesar 5.000 pengguna bersamaan saat pengisian KRS.
+- **Keamanan:** kredensial di-hash dengan bcrypt/Argon2, koneksi menggunakan
+  HTTPS/SSL, dan query mencegah SQL injection.
+- **Ketersediaan:** uptime minimal 99,5% dan pencadangan basis data otomatis
+  setiap hari.
+
+## Status implementasi
+
+Repository ini menggunakan Laravel dan MySQL. Layanan akademik dan rancangan
+database untuk alur KRS, jadwal, penilaian, presensi, serta kelayakan UAS
+tersedia pada proyek. Saat ini aturan akademik tersebut belum dihubungkan ke
+endpoint HTTP atau antarmuka pengguna. Kebutuhan BRD seperti autentikasi peran,
+KHS/transkrip PDF, audit log nilai, integrasi pembayaran, target performa, dan
+operasional backup perlu diperlakukan sebagai pekerjaan lanjutan sampai
+implementasinya diverifikasi.
+
+Seeder laporan menghasilkan 2.000 mahasiswa dummy beserta data akademik
+terkait—termasuk KRS, nilai, dan 16 catatan presensi per mata kuliah—dengan
+total lebih dari 100.000 baris. Data ditujukan untuk pengujian dan demonstrasi,
+bukan data mahasiswa sungguhan.
+
+## Menjalankan proyek
+
+1. Salin `.env.example` menjadi `.env`, lalu atur koneksi MySQL sesuai
+   lingkungan lokal.
+2. Buat database MySQL yang namanya sesuai dengan `DB_DATABASE` di `.env`.
+3. Pasang dependency dan siapkan aplikasi:
+
+   ```bash
+   composer install
+   php artisan key:generate
+   php artisan migrate --seed
+   ```
+
+Seeder laporan dapat dijalankan ulang secara terpisah:
 
 ```bash
 php artisan db:seed --class=LaporanDataSeeder
 ```
 
-Kebijakan batas SKS berdasarkan IPS tersimpan di `kebijakan_beban_sks`, dan
-konversi nilai akhir ke nilai huruf tersimpan di `skala_nilais`; keduanya dapat
-diubah sesuai ketentuan kampus. Aturan pengisian dan pengajuan KRS, jadwal,
-penilaian, presensi, serta kelayakan UAS diterapkan oleh layanan aplikasi pada
-`app/Services`.
-
-Rancangan tabel DBML tersedia di [`database/schema.dbml`](database/schema.dbml).
-KRS tersimpan pada tabel `krs`, sedangkan mata kuliah dan kelas yang dipilih
-tersimpan pada `krs_details`.
-
-Jalankan suite pengujian dengan:
+Jalankan pengujian dengan:
 
 ```bash
 php artisan test
 ```
-
-Saat ini aturan akademik tersedia pada lapisan layanan dan belum dihubungkan ke
-endpoint HTTP atau antarmuka pengguna.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
-```
-
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
-
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
