@@ -14,7 +14,7 @@ class KampusSeederTest extends TestCase
 
     public function test_kampus_seeder_creates_linked_faculty_students_and_krs_data(): void
     {
-        $this->seed();
+        $this->seed(KampusSeeder::class);
 
         $this->assertDatabaseCount('fakultas', 3);
         $this->assertDatabaseCount('mahasiswas', 6);

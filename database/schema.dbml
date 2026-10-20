@@ -90,7 +90,7 @@ Table ruangans {
 
 Table semester_akademiks {
   id bigint [pk, increment]
-  kode varchar(10) [not null, unique, note: 'Contoh: 2026/2027-1']
+  kode varchar(12) [not null, unique, note: 'Contoh: 2026/2027-1']
   tahun_akademik varchar(9) [not null, note: 'Contoh: 2026/2027']
   semester varchar(10) [not null, note: 'ganjil, genap, atau pendek']
   tanggal_mulai date [not null]

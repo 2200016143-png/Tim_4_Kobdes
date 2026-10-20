@@ -57,7 +57,7 @@ return new class extends Migration
 
         Schema::create('semester_akademiks', function (Blueprint $table) {
             $table->id();
-            $table->string('kode', 10)->unique();
+            $table->string('kode', 12)->unique();
             $table->string('tahun_akademik', 9);
             $table->string('semester', 10);
             $table->date('tanggal_mulai');
@@ -121,7 +121,10 @@ return new class extends Migration
             $table->string('status', 20)->default('open');
             $table->timestamps();
 
-            $table->unique(['semester_akademik_id', 'mata_kuliah_id', 'kode_kelas']);
+            $table->unique(
+                ['semester_akademik_id', 'mata_kuliah_id', 'kode_kelas'],
+                'kelas_semester_course_section_unique',
+            );
         });
 
         Schema::create('jadwal_kuliahs', function (Blueprint $table) {

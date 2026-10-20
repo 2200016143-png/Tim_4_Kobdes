@@ -23,19 +23,22 @@ Laravel is accessible, powerful, and provides tools required for large, robust a
 
 ## Data Akademik
 
-Seeder kampus menyediakan data contoh fakultas, program studi, dosen, mahasiswa,
-mata kuliah, kelas, jadwal, komponen penilaian, dan KRS untuk tahun akademik
-2026/2027. Untuk membuat tabel dan mengisi data contoh pada database yang
-dikonfigurasi:
+Seeder menyediakan data kampus dan 2.000 mahasiswa dummy beserta KRS yang
+disetujui, nilai komponen dan nilai akhir, serta 16 catatan presensi per mata
+kuliah untuk tahun akademik 2026/2027. Total data akademik yang dibuat seeder
+laporan melampaui 100.000 baris. Data dummy terhubung ke fakultas, program studi,
+dosen, kelas, semester, dan komponen nilai sesuai rancangan di BRD.
+
+Untuk membuat tabel dan mengisi data pada database yang dikonfigurasi:
 
 ```bash
 php artisan migrate --seed
 ```
 
-Seeder dapat dijalankan kembali tanpa menggandakan data:
+Seeder laporan dapat dijalankan sendiri dan diulang tanpa menggandakan data:
 
 ```bash
-php artisan db:seed --class=KampusSeeder
+php artisan db:seed --class=LaporanDataSeeder
 ```
 
 Kebijakan batas SKS berdasarkan IPS tersimpan di `kebijakan_beban_sks`, dan

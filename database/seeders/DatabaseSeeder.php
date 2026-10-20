@@ -17,11 +17,14 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        $this->call(KampusSeeder::class);
+        $this->call(LaporanDataSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        User::query()->firstOrCreate(
+            ['email' => 'test@example.com'],
+            User::factory()->raw([
+                'name' => 'Test User',
+                'email' => 'test@example.com',
+            ]),
+        );
     }
 }
